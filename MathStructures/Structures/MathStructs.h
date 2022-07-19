@@ -6,10 +6,10 @@
 
 /*
 	TODO:
-	integrate the safe::gift struct into the system
 	add matrix multiplication 
 	add matrix reduced echelon form
 	add matrix inverses
+	integrate the safe::gift struct into the system
 */
 
 namespace math {
@@ -25,12 +25,12 @@ namespace math {
 	*/
 	class error {
 	private:
-		unsigned int errorNum;
+		 int errorNum;
 		std::string errorHelp;
 		// no copy constructor allowed
 		error(const error& e) = delete;
 	public:
-		error(unsigned int eNum) : errorNum(eNum) {
+		error( int eNum) : errorNum(eNum) {
 			// will be expanded as we run into more 
 			// issues
 			switch (eNum) {
@@ -40,9 +40,9 @@ namespace math {
 				errorHelp = "Missing Value";
 			}
 		}
-		error(unsigned int eNum, std::string e) : errorNum(eNum), errorHelp(e) { }
+		error( int eNum, std::string e) : errorNum(eNum), errorHelp(e) { }
 		error(std::string e) : errorNum(1), errorHelp(e) { }
-		unsigned int getNum() { return this->errorNum; }
+		 int getNum() { return this->errorNum; }
 		void printError() const {
 			std::cout << errorHelp;
 			if (errorNum != 0) exit(errorNum);
@@ -65,28 +65,27 @@ namespace math {
 	};
 }
 
-namespace safe {
-	template<class T>
-	struct gift {
-		const T okay;
-		const math::error err;
-		gift(T v) : okay(v), err(0) { }
-
-		gift() : okay(0), err(1) { }
-		
-		// sees if theres an error
-		// if there is then the program terminates
-		// otherwise it returns the okay value
-		T unwrap() { err(); return okay; }
-
-		// the same as calling ok()
-		bool operator() () { return err(); }
-	};
-}
+//namespace safe {
+//	struct gift {
+//		const math::Complex okay;
+//		const math::error err;
+//		gift(math::Complex v) : okay(v), err(0) { }
+//
+//		gift() : okay(math::Complex()), err(1) { }
+//		
+//		// sees if theres an error
+//		// if there is then the program terminates
+//		// otherwise it returns the okay value
+//		math::Complex unwrap() { err(); return okay; }
+//
+//		math::Complex unwrap() const { err(); return okay; }
+//
+//		// the same as calling ok()
+//		bool operator() () { return err(); }
+//	};
+//}
 
 namespace math {
-	using uint = unsigned int;
-
 	class Complex;
 	class Matrix;
 	class Vector;
@@ -97,9 +96,9 @@ namespace math {
 		double complex;
 
 		Complex();
-		Complex(double r, double c);
+		Complex(const double& r, const double& c);
 		Complex(const Complex& Z);
-		Complex(const safe::gift<Complex>& Z);
+		// Complex(const safe::gift<Complex>& Z);
 		~Complex();
 		/*
 			returns a 2x2 matrix with entries representing
@@ -119,18 +118,30 @@ namespace math {
 
 	class Matrix {
 	public:
-		uint rows;
-		uint cols;
-		uint dims;
-		double** elements;
+		 int rows;
+		 int cols;
+		 int dims;
+		 double** elements;
 
 		Matrix();
-		Matrix(uint c, uint r);
+		Matrix(const  int& r, const  int& c);
 		Matrix(const Matrix& m);
+		Matrix(const int& r, const int& c, const double* arr);
 		~Matrix();
-		double operator() (uint c, uint r);
-		double operator() (uint c, uint r) const;
+		// multiplies m1 with m2
+		// has to be called as a member of the class which feels weird
+		Matrix matmult(const Matrix& m1, const Matrix& m2);
+		Matrix matmult(const Matrix& m);
+		Matrix identity(const  int& s);
+		// returns the inverse of the matrix if it exists
+		Matrix inverse();
+		double operator() (const  int& r, const  int& c);
+		double operator() (const  int& r, const  int& c) const;
+		double* operator[] (const int& r);
+		double* operator[] (const int& r) const;
 		friend Matrix operator* (const double& d, const Matrix& m);
+		Matrix operator* (const Matrix& m);
+		Vector operator* (const Vector& v);
 		/*
 		* prints the matrix to the standard output in the form
 		* | a[0][0] a[0][1] ... a[0][a.size - 1] |
@@ -143,15 +154,15 @@ namespace math {
 
 	class Vector {
 	public:
-		uint size;
+		 int size;
 		double* elm;
 
 		Vector();
-		Vector(uint s);
-		Vector(uint s, double (*func)(int i));
+		Vector(const  int& s);
+		Vector(const  int& s, double (*func)(double x));
 		Vector(const Vector& v);
 		~Vector();
-		double operator[] (const uint& i);
+		double operator[] (const  int& i);
 		Vector operator* (const double& d);
 		friend Vector operator* (const double& d, const Vector& V);
 		double operator* (const Vector& v);

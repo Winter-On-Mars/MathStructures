@@ -1,18 +1,25 @@
 #include <iostream>
 #include "../Structures/MathStructs.h"
 
-double func(int i) {
-	return i * i;
+void func() {
+
 }
 
 int main() {
 	std::cout << "Hello World!\n";
 	
-	safe::gift<double> test(20);
+	double ihatethis[] = { 1, 2, 3, 4, 5, 6 };
+	double ihatethis2electricboogoolo[] = { 10, 11, 20, 21, 30, 31 };
 
-	std::cout << test.unwrap() << "\n";
+	math::Matrix m1 = math::Matrix(2, 3, ihatethis);
+	math::Matrix m2 = m1.inverse();
 
-	std::cout << "readable text\n";
+
+	std::cout << m1;
+
+	std::cout << "--------\n";
+
+	std::cout << m2;
 
 	return 0;
 }
