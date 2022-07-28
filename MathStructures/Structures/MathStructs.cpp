@@ -1,11 +1,20 @@
 #include "MathStructs.h"
 #include <iostream>
 
-math::Complex::Complex() : real(0), complex(0) { };
+math::Complex::Complex() : real(0), complex(0) {
+	this->r = 0;
+	this->argument = 0;
+};
 
-math::Complex::Complex(const double& r, const double& c) : real(r), complex(c) { };
+math::Complex::Complex(const double& r, const double& c) : real(r), complex(c) { 
+	this->r = std::sqrt(r * r + c * c);
+	this->argument = std::atan(c / r);
+};
 
-math::Complex::Complex(const Complex& Z) : real(Z.real), complex(Z.complex) { };
+math::Complex::Complex(const Complex& Z) : real(Z.real), complex(Z.complex) { 
+	this->r = Z.r;
+	this->argument = Z.argument;
+};
 
 //math::Complex::Complex(const safe::gift<math::Complex>& Z) { 
 //	this->real = Z.unwrap().real;
@@ -23,9 +32,9 @@ math::Matrix math::Complex::toMatrix() {
 	return rm;
 }
 
-math::Complex::operator double() const {
-	return 0;
-}
+double math::Complex::mod() { return this->r; }
+
+double math::Complex::arg() { return this->argument; }
 
 math::Complex math::Complex::operator+ (const Complex& z) {
 	return Complex(this->real + z.real, 
@@ -73,14 +82,45 @@ math::Matrix::Matrix(const math::Matrix& m) : rows(m.rows), cols(m.cols), dims(m
 	}
 }
 
+math::Matrix::Matrix(math::Matrix&& m) noexcept : rows(std::move(m.rows)), cols(std::move(m.cols)), dims(std::move(m.dims)) {
+	this->elements = new double* [rows];
+	for (int i = 0; i < rows; i++) {
+		this->elements[i] = m.elements[i];
+	}
+
+	m.cols = m.rows = m.dims = 0;
+	for (int i = 0; i < rows; i++) {
+		m.elements[i] = nullptr;
+	}
+	m.elements = nullptr;
+}
+
 math::Matrix::Matrix(const int& r, const int& c, const double* arr) : rows(r), cols(c), dims(rows * cols) {
 	this->elements = new double* [rows];
 	for (int i = 0; i < rows; i++) {
 		this->elements[i] = new double[cols];
+		// this should just be a memcpy
 		for (int j = 0; j < cols; j++) 
 			this->elements[i][j] = arr[i * cols + j];
 		// memcpy(this->elements[i], arr, cols * sizeof(double));
 	}
+}
+
+math::Matrix::Matrix(const math::Vector& v) 
+	: rows(std::sqrt(v.size)), cols(rows), dims(v.size)
+{
+	this->elements = new double* [rows];
+	for (int i = 0; i < rows; i++) {
+		this->elements[i] = new double[cols];
+		for (int j = 0; j < cols; j++)
+			this->elements[i][j] = v[i * cols + j];
+	}
+}
+
+math::Matrix::Matrix(Vector&& v)
+	: rows(std::sqrt(v.size)), cols(rows), dims(v.size)
+{
+	
 }
 
 math::Matrix::~Matrix() {
@@ -133,6 +173,15 @@ math::Matrix math::Matrix::inverse() {
 	math::Matrix rmat = math::Matrix(this->rows, this->cols);
 
 	// this is where we do the gaussian elimination
+
+	bool reduced = false;
+	while (!reduced) {
+		for (int i = 0; i < rows; i++) {
+			if (copy(i, i) != 0) {
+				std::cout << "Hello\n";
+			}
+		}
+	}
 
 	return rmat;
 }
@@ -189,6 +238,19 @@ math::Matrix math::Matrix::operator*(const math::Matrix& m) {
 	return rmat;
 }
 
+math::Vector math::Matrix::operator* (const Vector& v) {
+	if (this->cols != v.size) return math::Vector();
+	math::Vector rvec = math::Vector(this->rows);
+	for (int i = 0; i < this->rows; i++) {
+		double sum = 0;
+		for (int j = 0; j < this->cols; j++) {
+			sum += this->elements[i][j] * v.elm[j];
+		}
+		rvec.elm[i] = sum;
+	}
+	return rvec;
+}
+
 std::ostream& math::operator<<(std::ostream& output, const Matrix& M) {
 	for ( int i = 0; i < M.rows; i++) {
 		output << "|";
@@ -208,6 +270,11 @@ math::Vector::Vector(const  int& s) : size(s) {
 	elm = new double[size] { 0 };
 }
 
+math::Vector::Vector(const int& s, const double* arr) : size(s) {
+	elm = new double[size] { 0 };
+	memcpy(elm, arr, size * sizeof(double));
+}
+
 math::Vector::Vector(const  int& s, double (*func)(double x)) {
 	size = s;
 	elm = new double[s] { 0 };
@@ -225,7 +292,12 @@ math::Vector::~Vector() {
 	delete[] elm;
 }
 
+// these should probably throw an error instead but -\_(-_-)_/-
 double math::Vector::operator[] (const  int& i) {
+	return (i < size) ? elm[i] : NULL;
+}
+
+double math::Vector::operator[] (const int& i) const {
 	return (i < size) ? elm[i] : NULL;
 }
 

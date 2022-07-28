@@ -6,7 +6,7 @@
 
 /*
 	TODO:
-	add matrix multiplication 
+	- add matrix multiplication 
 	add matrix reduced echelon form
 	add matrix inverses
 	integrate the safe::gift struct into the system
@@ -91,6 +91,9 @@ namespace math {
 	class Vector;
 
 	class Complex {
+	private:
+		double r;
+		double argument;
 	public:
 		double real;
 		double complex;
@@ -105,7 +108,8 @@ namespace math {
 			the complex number as a transform
 		*/
 		math::Matrix toMatrix();
-		operator double() const;
+		double mod();
+		double arg();
 		Complex operator+ (const Complex& z);
 		friend Complex operator* (const double& d, const Complex& z);
 		Complex operator* (const Complex& z);
@@ -124,15 +128,22 @@ namespace math {
 		 double** elements;
 
 		Matrix();
-		Matrix(const  int& r, const  int& c);
+		Matrix(const int& r, const int& c);
 		Matrix(const Matrix& m);
+		Matrix(Matrix&& m) noexcept;
 		Matrix(const int& r, const int& c, const double* arr);
+		Matrix(const Vector& v);
+		Matrix(Vector&& v);
 		~Matrix();
 		// multiplies m1 with m2
 		// has to be called as a member of the class which feels weird
-		Matrix matmult(const Matrix& m1, const Matrix& m2);
+		static Matrix matmult(const Matrix& m1, const Matrix& m2);
 		Matrix matmult(const Matrix& m);
-		Matrix identity(const  int& s);
+		static Matrix identity(const int& s);
+		Matrix rowEchelon();
+		// reduces the first matrix to row echelon
+		// applying the same operations to m2
+		Matrix rowEchelon(const Matrix& m1, const Matrix& m2);
 		// returns the inverse of the matrix if it exists
 		Matrix inverse();
 		double operator() (const  int& r, const  int& c);
@@ -147,7 +158,7 @@ namespace math {
 		* | a[0][0] a[0][1] ... a[0][a.size - 1] |
 		* | a[1][0] a[1][1] ... a[1][a.size - 1] |
 		* | ...                                  |
-		* | a[a.size - 1][0] a[a.size - 1][1] ... a[a.size - 1][a.size - 1] | 
+		* | a[a.size - 1][0] a[a.size - 1][1] ... a[a.size - 1][a.size - 1] |\n
 		*/
 		friend std::ostream& operator<< (std::ostream& output, const Matrix& M);
 	};
@@ -155,18 +166,24 @@ namespace math {
 	class Vector {
 	public:
 		 int size;
-		double* elm;
+		 double* elm;
 
 		Vector();
-		Vector(const  int& s);
-		Vector(const  int& s, double (*func)(double x));
+		Vector(const int& s);
+		Vector(const int& s, const double* arr);
+		Vector(const int& s, double (*func)(double x));
 		Vector(const Vector& v);
 		~Vector();
 		double operator[] (const  int& i);
+		double operator[] (const int& i) const;
 		Vector operator* (const double& d);
 		friend Vector operator* (const double& d, const Vector& V);
 		double operator* (const Vector& v);
 		friend double operator* (const Vector& v1, const Vector& v2);
+		/*
+		* prints the vector to the standard output in the form
+		* < v[0], v[1], ... , v[v.size - 1] >\n
+		*/
 		friend std::ostream& operator<< (std::ostream& output, const Vector& v);
 	};
 }
