@@ -111,13 +111,19 @@ namespace math {
 		double mod();
 		double arg();
 		Complex operator+ (const Complex& z);
-		friend Complex operator* (const double& d, const Complex& z);
+		// friend functions seem to have to be defined in the class
+		friend Complex operator* (const double& d, const Complex& z) {
+			return Complex(d * z.real, d * z.complex);
+		}
 		Complex operator* (const Complex& z);
 		/*
 			prints the complex number to the standard output in the form
 			(z.real) + (z.complex) i
 		*/
-		friend std::ostream& operator<< (std::ostream& output, const Complex& z);
+		friend std::ostream& operator<< (std::ostream& output, const Complex& z) {
+			output << z.real << " + " << z.complex << "i\n";
+			return output;
+		}
 	};
 
 	class Matrix {
@@ -133,7 +139,6 @@ namespace math {
 		Matrix(Matrix&& m) noexcept;
 		Matrix(const int& r, const int& c, const double* arr);
 		Matrix(const Vector& v);
-		Matrix(Vector&& v);
 		~Matrix();
 		// multiplies m1 with m2
 		// has to be called as a member of the class which feels weird
@@ -146,13 +151,27 @@ namespace math {
 		Matrix rowEchelon(const Matrix& m1, const Matrix& m2);
 		// returns the inverse of the matrix if it exists
 		Matrix inverse();
+		// this function has an error where if you input invalid numbers
+		// then the function will return 0
+		// this is a known bug
 		double operator() (const  int& r, const  int& c);
+		// this function has an error where if you input invalid numbers
+		// then the function will return 0
+		// this is a known bug
 		double operator() (const  int& r, const  int& c) const;
 		double* operator[] (const int& r);
 		double* operator[] (const int& r) const;
-		friend Matrix operator* (const double& d, const Matrix& m);
+		friend Matrix operator* (const double& d, const Matrix& m) {
+			math::Matrix rmat = math::Matrix(m.cols, m.rows);
+			for ( int i = 0; i < rmat.rows; i++) 
+				for ( int j = 0; j < rmat.cols; j++)
+				rmat.elements[i][j] = d * m(i, j);
+			return rmat;
+		}
 		Matrix operator* (const Matrix& m);
 		Vector operator* (const Vector& v);
+		Matrix operator+ (const Matrix& m);
+		Matrix operator- (const Matrix& m);
 		/*
 		* prints the matrix to the standard output in the form
 		* | a[0][0] a[0][1] ... a[0][a.size - 1] |
@@ -160,7 +179,16 @@ namespace math {
 		* | ...                                  |
 		* | a[a.size - 1][0] a[a.size - 1][1] ... a[a.size - 1][a.size - 1] |\n
 		*/
-		friend std::ostream& operator<< (std::ostream& output, const Matrix& M);
+		friend std::ostream& operator<< (std::ostream& output, const Matrix& M) {
+			for ( int i = 0; i < M.rows; i++) {
+				output << "|";
+				for ( int j = 0; j < M.cols; j++) {
+					output << ' ' << M.elements[i][j];
+				}
+				output << " |\n";
+			}
+			return output;
+		}
 	};
 
 	class Vector {
@@ -177,14 +205,26 @@ namespace math {
 		double operator[] (const  int& i);
 		double operator[] (const int& i) const;
 		Vector operator* (const double& d);
-		friend Vector operator* (const double& d, const Vector& V);
+		friend Vector operator* (const double& d, const Vector& V) {
+			Vector rvec = Vector(V.size);
+			for ( int i = 0; i < rvec.size; i++)
+				rvec.elm[i] = V.elm[i] * d;
+			return rvec;
+		}
 		double operator* (const Vector& v);
-		friend double operator* (const Vector& v1, const Vector& v2);
+		Vector operator+ (const Vector& v);
+		Vector operator- (const Vector& v);
 		/*
 		* prints the vector to the standard output in the form
 		* < v[0], v[1], ... , v[v.size - 1] >\n
 		*/
-		friend std::ostream& operator<< (std::ostream& output, const Vector& v);
+		friend std::ostream& operator<< (std::ostream& output, const Vector& v) {
+			output << "<";
+			for ( int i = 0; i < v.size; i++)
+				output << ' ' << v.elm[i] << ((i == v.size - 1) ? " " : ", ");
+			output << ">\n";
+			return output;
+		}
 	};
 }
 

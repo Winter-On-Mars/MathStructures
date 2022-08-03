@@ -1,5 +1,7 @@
 #include "MathStructs.h"
 #include <iostream>
+#include <cmath>
+#include <cstring>
 
 math::Complex::Complex() : real(0), complex(0) {
 	this->r = 0;
@@ -42,20 +44,11 @@ math::Complex math::Complex::operator+ (const Complex& z) {
 	);
 }
 
-math::Complex math::operator* (const double& d, const Complex& z) {
-	return Complex(d * z.real, d * z.complex);
-}
-
 math::Complex math::Complex::operator* (const Complex& z) {
 	return Complex(
 		this->real * z.real - this->complex * z.complex,
 		this->real * z.complex - this->complex * z.real
 	);
-}
-	
-std::ostream& math::operator<<(std::ostream& output, const Complex& z) {
-	output << z.real << " + " << z.complex << "i\n";
-	return output;
 }
 	
 // creates a 0D matrix
@@ -115,12 +108,6 @@ math::Matrix::Matrix(const math::Vector& v)
 		for (int j = 0; j < cols; j++)
 			this->elements[i][j] = v[i * cols + j];
 	}
-}
-
-math::Matrix::Matrix(Vector&& v)
-	: rows(std::sqrt(v.size)), cols(rows), dims(v.size)
-{
-	
 }
 
 math::Matrix::~Matrix() {
@@ -190,21 +177,23 @@ math::Matrix math::Matrix::inverse() {
 // because using null is not what i would like to do
 double math::Matrix::operator() (const  int& r, const  int& c) {
 	if (this->elements == nullptr || this->elements[r] == nullptr)
-		return NULL;
+		return 0;
 	if (r < 0 || r > this->rows)
-		return NULL;
+		return 0;
 	if (c < 0 || c > this->cols)
-		return NULL;
+		return 0;
+
 	return this->elements[r][c];
 }
 
 double math::Matrix::operator() (const  int& r, const  int& c) const {
 	if (this->elements == nullptr || this->elements[r] == nullptr)
-		return NULL;
+		return 0;
 	if (r < 0 || r > this->rows)
-		return NULL;
+		return 0;
 	if (c < 0 || c > this->cols)
-		return NULL;
+		return 0;
+
 	return this->elements[r][c];
 }
 
@@ -214,14 +203,6 @@ double* math::Matrix::operator[] (const int& r) {
 
 double* math::Matrix::operator[] (const int& r) const {
 	return (r < 0 || r > this->rows) ? nullptr : this->elements[r];
-}
-
-math::Matrix math::operator* (const double& d, const math::Matrix& m) {
-	math::Matrix rmat = math::Matrix(m.cols, m.rows);
-	for ( int i = 0; i < rmat.rows; i++)
-		for ( int j = 0; j < rmat.cols; j++)
-			rmat.elements[i][j] = d * m(i, j);
-	return rmat;
 }
 
 math::Matrix math::Matrix::operator*(const math::Matrix& m) {
@@ -251,15 +232,22 @@ math::Vector math::Matrix::operator* (const Vector& v) {
 	return rvec;
 }
 
-std::ostream& math::operator<<(std::ostream& output, const Matrix& M) {
-	for ( int i = 0; i < M.rows; i++) {
-		output << "|";
-		for ( int j = 0; j < M.cols; j++) {
-			output << ' ' << M.elements[i][j];
-		}
-		output << " |\n";
-	}
-	return output;
+math::Matrix math::Matrix::operator+ (const Matrix& m) {
+	if (this->cols != m.cols && this->rows != m.rows) return math::Matrix();
+	math::Matrix rmat = math::Matrix(this->cols, this->rows);
+	for ( int i = 0; i < rmat.rows; i++ ) 
+		for ( int j = 0; j < rmat.cols; j++ ) 
+			rmat.elements[i][j] = (*this)(i, j) + m(i, j);
+	return rmat;
+}
+
+math::Matrix math::Matrix::operator- (const Matrix& m) {
+	if (this->cols != m.cols && this->rows != m.rows) return math::Matrix();
+	math::Matrix rmat = math::Matrix(this->cols, this->rows);
+	for ( int i = 0; i < rmat.rows; i++ ) 
+		for ( int j = 0; j < rmat.cols; j++ )
+			rmat.elements[i][j] = (*this)(i, j) - m(i, j);
+	return rmat;
 }
 
 math::Vector::Vector() : size(0) {
@@ -294,11 +282,11 @@ math::Vector::~Vector() {
 
 // these should probably throw an error instead but -\_(-_-)_/-
 double math::Vector::operator[] (const  int& i) {
-	return (i < size) ? elm[i] : NULL;
+	return (i < size) ? elm[i] : 0;
 }
 
 double math::Vector::operator[] (const int& i) const {
-	return (i < size) ? elm[i] : NULL;
+	return (i < size) ? elm[i] : 0;
 }
 
 math::Vector math::Vector::operator* (const double& d) {
@@ -308,38 +296,26 @@ math::Vector math::Vector::operator* (const double& d) {
 	return rvec;
 }
 
-math::Vector math::operator* (const double& d, const math::Vector& V) {
-	Vector rvec = Vector(V.size);
-	for ( int i = 0; i < V.size; i++)
-		rvec.elm[i] = V.elm[i] * d;
-	return rvec;
-}
-
 double math::Vector::operator*(const Vector& v) {
 	double total = 0;
-	 int s = (v.size < this->size) ? v.size : this->size;
+	int s = (v.size < this->size) ? v.size : this->size;
 	for ( int i = 0; i < s; i++)
 		total += v.elm[i] * this->elm[i];
 	return total;
 }
 
-double math::operator* (const Vector& v1, const Vector& v2) {
-	double total = 0;
-	if (v1.size != v2.size) {
-		// this would be a great place for
-		// the gift class if we could get that to work
-		std::cout << "Incorrect dimensions";
-		return 0;
-	}
-	for (int i = 0; i < v1.size; i++)
-		total += v1.elm[i] * v2.elm[i];
-	return total;
+math::Vector math::Vector::operator+ (const Vector& v) {
+	if (this->size != v.size) return Vector();
+	math::Vector rvec = Vector(this->size);
+	for ( int i = 0; i < rvec.size; i++ )
+		rvec.elm[i] = (*this)[i] + v[i];
+	return rvec;
 }
 
-std::ostream& math::operator<< (std::ostream& output, const math::Vector& v) {
-	output << "<";
-	for ( int i = 0; i < v.size; i++)
-		output << ' ' << v.elm[i] << ((i == v.size - 1) ? " " : ", ");
-	output << ">\n";
-	return output;
+math::Vector math::Vector::operator- (const Vector& v) {
+	if (this->size != v.size) return Vector();
+	math::Vector rvec = Vector(this->size);
+	for ( int i = 0; i < rvec.size; i++ )
+		rvec.elm[i] = (*this)[i] - v[i];
+	return rvec;
 }
