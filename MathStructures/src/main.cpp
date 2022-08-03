@@ -13,16 +13,24 @@
 // math::Matrix m(2, 2, { 1.0, 0.0, 0.0, 1.0 });
 
 int main() {
-	double m1arr[] = { 1, 2, 3, 4 };
-	double m2arr[] = { 5, 4, 3, 2 };
-	math::Matrix m1(2, 2, m1arr);
-	math::Matrix m2(2, 2, m2arr);
+	{
+		double m1arr[] = { 1, 2, 3, 4 };
+		double m2arr[] = { 5, 4, 3, 2 };
+		math::Matrix m1(2, 2, m1arr);
+		math::Matrix m2(2, 2, m2arr);
 
-	math::Matrix m3 = m1 * m2;
-	math::Matrix m4 = m1.matmult(m2);
-	math::Matrix m5 = math::Matrix::matmult(m1, m2);
+		std::cout << m1 + m2 << m1 - m2;
+	}
 
-	std::cout << m3 << m4 << m5;
+	{
+		double v1arr[] = { 5, 4, 3, 2, 1 };
+		math::Vector v1(5, v1arr);
+		math::Vector v2(5,
+			[](double x) -> double { return x; }
+		);
+
+		std::cout << v1 + v2 << v1 - v2;
+	}
 
 	return 0;
 }
