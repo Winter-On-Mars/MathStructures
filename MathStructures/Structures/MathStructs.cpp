@@ -2,29 +2,17 @@
 #include <iostream>
 #include <cmath>
 #include <cstring>
+#define abs(x) ((x < 0) ? -x : x)
+#define DEBUG false
 
-math::Complex::Complex() : real(0), complex(0) {
-	this->r = 0;
-	this->argument = 0;
-};
+math::Complex::Complex() : real(0), complex(0) { };
 
-math::Complex::Complex(const double& r, const double& c) : real(r), complex(c) { 
-	this->r = std::sqrt(r * r + c * c);
-	this->argument = std::atan(c / r);
-};
+math::Complex::Complex(const double& r, const double& c) : real(r), complex(c) { };
 
-math::Complex::Complex(const Complex& Z) : real(Z.real), complex(Z.complex) { 
-	this->r = Z.r;
-	this->argument = Z.argument;
-};
-
-//math::Complex::Complex(const safe::gift<math::Complex>& Z) { 
-//	this->real = Z.unwrap().real;
-//	this->complex = Z.unwrap().complex;
-//}
+math::Complex::Complex(const Complex& Z) : real(Z.real), complex(Z.complex) { };
 
 math::Complex::~Complex() { };
-		
+
 math::Matrix math::Complex::toMatrix() {
 	math::Matrix rm = math::Matrix(2, 2);
 	rm.elements[0][0] = this->real;
@@ -34,9 +22,13 @@ math::Matrix math::Complex::toMatrix() {
 	return rm;
 }
 
-double math::Complex::mod() { return this->r; }
+double math::Complex::mod() { 
+	return std::sqrt(this->real * this->real + this->complex * this->complex); 
+}
 
-double math::Complex::arg() { return this->argument; }
+double math::Complex::arg() { 
+	return std::atan(this->complex / this->real); 
+}
 
 math::Complex math::Complex::operator+ (const Complex& z) {
 	return Complex(this->real + z.real, 
@@ -59,7 +51,7 @@ math::Matrix::Matrix() : rows(0), cols(0), dims(0) {
 	}
 }
 
-// creates a c x r D matrix, initialized with 0s
+// creates a r x c D matrix, initialized with 0s
 math::Matrix::Matrix(const  int& r, const  int& c) : rows(r), cols(c), dims(c * r) {
 	this->elements = new double* [rows];
 	for (int i = 0; i < rows; i++) {
@@ -132,6 +124,13 @@ math::Matrix math::Matrix::matmult(const math::Matrix& m1, const math::Matrix& m
 	return rmat;
 }
 
+math::Matrix math::Matrix::identity(const int& s) {
+	math::Matrix rmat = math::Matrix(s, s);
+	for (int i = 0; i < s; i++)
+		rmat.elements[i][i] = 1;
+	return rmat;
+}
+
 math::Matrix math::Matrix::matmult(const math::Matrix& m) {
 	if (this->cols != m.rows) return math::Matrix();
 	math::Matrix rmat = math::Matrix(this->rows, m.cols);
@@ -146,30 +145,94 @@ math::Matrix math::Matrix::matmult(const math::Matrix& m) {
 	return rmat;
 }
 
-math::Matrix math::Matrix::identity(const  int& s) {
-	math::Matrix rmat = math::Matrix(s, s);
-	for (int i = 0; i < s; i++)
-		rmat.elements[i][i] = 1;
+template<typename t>
+void swap(t& a, t& b) {
+	t temp = a;
+	a = b;
+	b = temp;
+}
+
+math::Matrix math::Matrix::triangular(const math::Matrix& m) {
+	if (m.cols != m.rows) return math::Matrix();
+	math::Matrix rmat = m;
+	for (int k = 0; k < rmat.cols; k++) {
+		// start in left most column 
+		int maxi = k;
+		// find the max in the column
+		for (int i = k; i < rmat.rows; i++) {
+			maxi = (abs(rmat(maxi, k)) < abs(rmat(i, k))) ? i : maxi;
+		}
+		// swap the row with the current elimination row
+		// swap the copy of the matrix
+		swap(rmat.elements[maxi], rmat.elements[k]);
+		// eliminate down
+		for (int i = k + 1; i < rmat.rows; i++) {
+			double multfact = rmat(i, k) / rmat(k, k);
+			for (int j = k; j < rmat.cols; j++) {
+				rmat.elements[i][j] = rmat(i, j) - multfact * rmat(k, j);
+			}
+		}
+	}
 	return rmat;
 }
 
+// should return an optional or my own version of optional
 math::Matrix math::Matrix::inverse() {
 	if (this->cols != this->rows) return math::Matrix();
 	// have to do gaussian elimination on matrix to get inverse
-	math::Matrix copy = *this;
-	math::Matrix rmat = math::Matrix(this->rows, this->cols);
-
-	// this is where we do the gaussian elimination
-
-	bool reduced = false;
-	while (!reduced) {
-		for (int i = 0; i < rows; i++) {
-			if (copy(i, i) != 0) {
-				std::cout << "Hello\n";
+	math::Matrix cmat = *this;
+	math::Matrix rmat = math::Matrix::identity(cmat.rows);
+	// TODO:
+	// 	impliment the pivoting gaussian elimination 
+	
+	// start in the left most column
+	for (int k = 0; k < cmat.cols; k++) {
+		// start in the top row
+		for (int i = k + 1; i < cmat.rows; i++) {
+			// find the multipliers
+			double firstMult = cmat(k, k);
+			double secondMult = -cmat(i, k);
+			std::cout << "row " << i << " = " << firstMult << " * row " << i << " + " << secondMult << " * row " << k << '\n';
+			// eliminate the row
+			for (int j = 0; j < cmat.cols; j++) {
+				cmat.elements[i][j] = firstMult * cmat(i, j) + secondMult * cmat(k, j);
+				rmat.elements[i][j] = firstMult * rmat(i, j) + secondMult * rmat(k, j);
 			}
 		}
 	}
 
+	for (int k = cmat.cols - 1, conv = 1; k > 0; k--, conv++) {
+		for (int i = cmat.rows - 1 - conv; i >= 0; i--) {
+			double firstMult = cmat(k, k);
+			double secondMult = -cmat(i, k);
+			std::cout << "row " << i << " = " << firstMult << " * row " << i << " + " << secondMult << " * row " << k << '\n';
+			// elim row
+			for (int j = 0; j < cmat.cols; j++) {
+				cmat.elements[i][j] = firstMult * cmat(i, j) + secondMult * cmat(k, j);
+				rmat.elements[i][j] = firstMult * rmat(i, j) + secondMult * rmat(k, j);
+			}
+		}
+	}
+
+	// rescale
+	for (int i = 0; i < cmat.rows; i++) {
+		double factor = 1 / cmat(i, i);
+		std::cout << "row " << i << " = " << factor << " * row " << i << '\n';
+		for (int j = 0; j < cmat.cols; j++) {
+			cmat.elements[i][j] = factor * cmat(i, j);
+			rmat.elements[i][j] = factor * rmat(i, j);
+		}
+	}
+	return rmat;
+}
+
+math::Matrix math::Matrix::transpose() {
+	math::Matrix rmat(this->rows, this->cols);
+	for (int i = 0; i < rmat.rows; i++) {
+		for (int j = 0; j < rmat.cols; j++) {
+			rmat.elements[i][j] = this->elements[j][i];
+		}
+	}
 	return rmat;
 }
 
@@ -250,23 +313,30 @@ math::Matrix math::Matrix::operator- (const Matrix& m) {
 	return rmat;
 }
 
+void math::Matrix::operator= (const Matrix& m) {
+	if (this->cols != m.cols || this->rows != m.rows) return;
+	for (int i = 0; i < this->rows; i++) {
+		memcpy(this->elements[i], m.elements[i], m.cols * sizeof(double));
+	}
+}
+
 math::Vector::Vector() : size(0) {
 	elm = new double[0];
 }
 
 math::Vector::Vector(const  int& s) : size(s) {
-	elm = new double[size] { 0 };
+	elm = new double[size] { 0.0 };
 }
 
 math::Vector::Vector(const int& s, const double* arr) : size(s) {
-	elm = new double[size] { 0 };
+	elm = new double[size] { 0.0 };
 	memcpy(elm, arr, size * sizeof(double));
 }
 
 math::Vector::Vector(const  int& s, double (*func)(double x)) {
 	size = s;
-	elm = new double[s] { 0 };
-	for ( int i = 0; i < s; i++) {
+	elm = new double[s] { 0.0 };
+	for ( int i = 0; i < s; i++ ) {
 		elm[i] = func(i);
 	}
 }
