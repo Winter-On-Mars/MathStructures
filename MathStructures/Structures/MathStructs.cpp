@@ -184,8 +184,7 @@ math::Matrix math::Matrix::inverse() {
 	math::Matrix rmat = math::Matrix::identity(cmat.rows);
 	// TODO:
 	// 	impliment the pivoting gaussian elimination 
-
-	std::cout << "elim down\n";
+	
 	// start in the left most column
 	for (int k = 0; k < cmat.cols; k++) {
 		// start in the top row
@@ -202,7 +201,6 @@ math::Matrix math::Matrix::inverse() {
 		}
 	}
 
-	std::cout << "elim up\n";
 	for (int k = cmat.cols - 1, conv = 1; k > 0; k--, conv++) {
 		for (int i = cmat.rows - 1 - conv; i >= 0; i--) {
 			double firstMult = cmat(k, k);
@@ -216,7 +214,6 @@ math::Matrix math::Matrix::inverse() {
 		}
 	}
 
-	std::cout << "rescale\n";
 	// rescale
 	for (int i = 0; i < cmat.rows; i++) {
 		double factor = 1 / cmat(i, i);
@@ -226,11 +223,6 @@ math::Matrix math::Matrix::inverse() {
 			rmat.elements[i][j] = factor * rmat(i, j);
 		}
 	}
-
-	std::cout << "\ncmat\n";
-	std::cout << cmat;
-	std::cout << "rmat\n";
-	std::cout << rmat;
 	return rmat;
 }
 
