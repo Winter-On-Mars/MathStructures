@@ -192,7 +192,6 @@ math::Matrix math::Matrix::inverse() {
 			// find the multipliers
 			double firstMult = cmat(k, k);
 			double secondMult = -cmat(i, k);
-			std::cout << "row " << i << " = " << firstMult << " * row " << i << " + " << secondMult << " * row " << k << '\n';
 			// eliminate the row
 			for (int j = 0; j < cmat.cols; j++) {
 				cmat.elements[i][j] = firstMult * cmat(i, j) + secondMult * cmat(k, j);
@@ -205,7 +204,6 @@ math::Matrix math::Matrix::inverse() {
 		for (int i = cmat.rows - 1 - conv; i >= 0; i--) {
 			double firstMult = cmat(k, k);
 			double secondMult = -cmat(i, k);
-			std::cout << "row " << i << " = " << firstMult << " * row " << i << " + " << secondMult << " * row " << k << '\n';
 			// elim row
 			for (int j = 0; j < cmat.cols; j++) {
 				cmat.elements[i][j] = firstMult * cmat(i, j) + secondMult * cmat(k, j);
@@ -217,7 +215,6 @@ math::Matrix math::Matrix::inverse() {
 	// rescale
 	for (int i = 0; i < cmat.rows; i++) {
 		double factor = 1 / cmat(i, i);
-		std::cout << "row " << i << " = " << factor << " * row " << i << '\n';
 		for (int j = 0; j < cmat.cols; j++) {
 			cmat.elements[i][j] = factor * cmat(i, j);
 			rmat.elements[i][j] = factor * rmat(i, j);

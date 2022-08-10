@@ -1,18 +1,23 @@
 #include <iostream>
-// #include <chrono>
+#include <chrono>
 #include <vector>
 #include <optional>
 #include "../Structures/MathStructs.h"
 
-// how to get time
-// std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-// std::chrono::high_resolution_clock::time_point stop = std::chrono::high_resolution_clock::now();
-// std::chrono::microseconds duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-// std::cout << duration.count() << '\n';
-
-// we can probably do this by passing in a math::vector
-// math::Matrix m(2, 2, { 1.0, 0.0, 0.0, 1.0 });
-
+class Timer {
+private:
+	std::chrono::time_point<std::chrono::high_resolution_clock> m_beg;
+	const char* m_name;
+public:
+	Timer(const char* name) :
+		m_name(name),
+		m_beg(std::chrono::high_resolution_clock::now()) { }
+	~Timer() {
+		auto end = std::chrono::high_resolution_clock::now();
+		auto dur = std::chrono::duration_cast<std::chrono::microseconds>(end - m_beg);
+		std::cout << m_name << " : " << dur.count() << " musec\n";
+	}
+};
 int main() {
 	int s1 = 2;
 	int s2 = 3;
@@ -41,21 +46,24 @@ int main() {
 	math::Matrix t1(s1, s1);
 	math::Matrix t2(s2, s2);
 	math::Matrix t3(s3, s3);
-	
-	t1 = m1.inverse();
-	t2 = m2.inverse();
-	t3 = m3.inverse();
 
-	std::cout << "testing 1\n";
-	std::cout <<  (m1 * t1);
-	std::cout <<  (t1 * m1);
+	// timer 1
+	{
+		Timer timer("m1");
+		t1 = m1.inverse();
+	}
 
-	std::cout << "testing 2\n";
-	std::cout <<  (m2 * t2);
-	std::cout <<  (t2 * m2);
-	
-	std::cout << "testing 3\n";
-	std::cout <<  (m3 * t3);
-	std::cout <<  (t3 * m3);
+	// timer 2
+	{
+		Timer timer("m2");
+		t2 = m2.inverse();
+	}
+
+	// timer 3
+	{
+		Timer timer("m3");
+		t3 = m3.inverse();
+	}
+
 	return 0;
 }
