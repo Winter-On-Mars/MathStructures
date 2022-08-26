@@ -47,18 +47,3 @@ math::Vector v(5,
 );
 ```
 Vectors also have overloads for the `std::cout <<` and the dot product.
-# Philosophy
-There are two important points about the code that is written
-1. User Discipline
-
-Most member variables are open for the user to modify themselves.
-
-While there is syntax that allows for a safer experience, you are able to access whatever value on the object that you would like. 
-Keeping the member variables open allows you to create functions in your own program to modify the objects as you would like.
-
-2. Code Safety
-
-All of the functions return a structure, and do not modify the original.
-
-While this does use more RAM, especially when working with large matrices, it does help by keeping the objects essentially constant.
-Just maybe don't use it on a machine with constrained memory limits.
