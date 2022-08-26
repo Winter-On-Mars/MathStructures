@@ -14,10 +14,10 @@ std::cout << z1 << z2 << z3 << z4;
 ```
 You can access the polar components with their member functions `mod()` and `arg()`, short for modulus and argument.
 
-Yout also have the ability to transfor the complex number into a Matrix
+You also have the ability to transfer the complex number into a Matrix
 ```
 math::Complex z(1, 0); // represents 1
-math::Matrix m = z.toMatrix();
+math::Matrix m = z.toMatrix();	// gives the identity matrix
 ```
 ## Matrix
 Creates a heap allocated 2D array of doubles to represent a matrix.
