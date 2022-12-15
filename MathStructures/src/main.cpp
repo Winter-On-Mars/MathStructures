@@ -64,6 +64,5 @@ int main() {
 		Timer timer("m3");
 		t3 = m3.inverse();
 	}
-
 	return 0;
 }
