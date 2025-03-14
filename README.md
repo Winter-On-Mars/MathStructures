@@ -18,7 +18,7 @@ You also have the ability to transfer the complex number into a Matrix
 ```cpp
 math::Complex z(1, 0); // represents 1
 math::Matrix m = z.toMatrix();	// gives the identity matrix
-```cpp
+```
 ## Matrix
 Creates a heap allocated 2D array of doubles to represent a matrix.
 Includes a number of standard Matrix operations.
